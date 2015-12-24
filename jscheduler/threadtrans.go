@@ -4,13 +4,13 @@ import (
 	"syscall"
 	"golang.org/x/sys/unix"
 	"regexp"
-	"net/http/cookiejar"
 )
 
 // SetAffinity attend the cpu list to pid,
 // note: SetAffinity apply to thread ID only,
 // to fully control one process, call SetAffinity for all thread of the process.
 // use os.GetThreadIDs() to get all thread of the process
+// check https://github.com/golang/go/issues/11243
 func SetAffinity(pid int, cpus []int) error {
 	var mask [1024 / 64]uintptr
 	if pid <= 0 {
