@@ -3,7 +3,6 @@ import (
 	"unsafe"
 	"syscall"
 	"golang.org/x/sys/unix"
-	"regexp"
 )
 
 // SetAffinity attend the cpu list to pid,
@@ -30,7 +29,7 @@ func SetAffinity(pid int, cpus []int) error {
 
 
 func SetAffinityThreadGroup(threads *ThreadGroup, cpus []int) error {
-	for _, t := range *threads.Threads {
+	for _, t := range threads.Threads {
 		err := SetAffinity(t.Tid , cpus)
 		if err != nil {
 			return err
@@ -40,7 +39,7 @@ func SetAffinityThreadGroup(threads *ThreadGroup, cpus []int) error {
 }
 
 func SetPriorityThreadGroup(threads *ThreadGroup, prio int) error {
-	for _, t := range *threads.Threads {
+	for _, t := range threads.Threads {
 		err := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, prio)
 		if err != nil {
 			return err
@@ -50,12 +49,12 @@ func SetPriorityThreadGroup(threads *ThreadGroup, prio int) error {
 }
 
 func RescheduleThreadGroup(threads *ThreadGroup, cpus []int, prio int) error {
-	for _, t := range *threads.Threads {
+	for _, t := range threads.Threads {
 		err := SetAffinity(t.Tid , cpus)
 		if err != nil {
 			return err
 		}
-		err1 := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, cpus)
+		err1 := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, prio)
 		if err1 != nil {
 			return err1
 		}
