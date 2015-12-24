@@ -10,11 +10,12 @@ import (
 // note: SetAffinity apply to thread ID only,
 // to fully control one process, call SetAffinity for all thread of the process.
 // use os.GetThreadIDs() to get all thread of the process
-// check https://github.com/golang/go/issues/11243
+// check ghttps://github.com/golang/go/issues/11243
 func SetAffinity(pid int, cpus []int) error {
 	var mask [1024 / 64]uintptr
 	if pid <= 0 {
-		pid, _, _ = syscall.RawSyscall(unix.SYS_GETPID, 0, 0, 0)
+		pidget, _, _ := syscall.RawSyscall(unix.SYS_GETPID, 0, 0, 0)
+		pid = int(pidget)
 	}
 	for _, cpuIdx := range cpus {
 		cpuIndex := uint(cpuIdx)
@@ -28,29 +29,36 @@ func SetAffinity(pid int, cpus []int) error {
 }
 
 
-func SetAffinityThreadpool(nameTidMap map[string] int, filter *regexp.Regexp, cpus []int) error {
-	for name, tid := range nameTidMap {
-		if filter.MatchString(name) {
-			err := SetAffinity(tid, cpus)
-			if err != nil {
-				return err
-			}
+func SetAffinityThreadGroup(threads *ThreadGroup, cpus []int) error {
+	for _, t := range *threads.Threads {
+		err := SetAffinity(t.Tid , cpus)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-
-func SetPriorityThreadpool(nameTidMap map[string] int, filter *regexp.Regexp, prio int) error {
-	for name, tid := range nameTidMap {
-		if filter.MatchString(name) {
-			err := unix.Setpriority(unix.PRIO_PROCESS, tid, prio)
-			if err != nil {
-				return err
-			}
+func SetPriorityThreadGroup(threads *ThreadGroup, prio int) error {
+	for _, t := range *threads.Threads {
+		err := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, prio)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-
+func RescheduleThreadGroup(threads *ThreadGroup, cpus []int, prio int) error {
+	for _, t := range *threads.Threads {
+		err := SetAffinity(t.Tid , cpus)
+		if err != nil {
+			return err
+		}
+		err1 := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, cpus)
+		if err1 != nil {
+			return err1
+		}
+	}
+	return nil
+}

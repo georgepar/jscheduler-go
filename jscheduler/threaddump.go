@@ -7,6 +7,9 @@ import (
 )
 
 
+const THREAD_DESCRIPTOR1 string = `^"(?P<name>[^"]+)".+prio=(?P<prio>[0-9]+)\s+os_prio=(?P<os_prio>[0-9]+)\s+tid=(?P<tid>0x[0-9a-f]+)\s+nid=(?P<nid>0x[0-9a-f]+).+`
+const THREAD_DESCRIPTOR2 string = `^"(?P<name>[^"]+)"\s+os_prio=(?P<os_prio>[0-9]+)\s+tid=(?P<tid>0x[0-9a-f]+)\s+nid=(?P<nid>0x[0-9a-f]+).+`
+
 // Use the given regex to decompose a line of the thread dump into the matched fields
 func DecomposeTreadDumpLineRe(threadDumpLine string, r *regexp.Regexp) (groups map[string] string, err error) {
 	matches := r.FindStringSubmatch(threadDumpLine)
@@ -24,8 +27,8 @@ func DecomposeTreadDumpLineRe(threadDumpLine string, r *regexp.Regexp) (groups m
 // Match the groups of a thread dump line and get the corresponding fields
 func DecomposeTreadDumpLine(threadDumpLine string) (groups map[string] string, err error) {
 	//TODO: Optimize/Combine regex. One thread is slipping away when testing on the Intellij process.
-	r1 := regexp.MustCompile(`^"(?P<name>[^"]+)".+prio=(?P<prio>[0-9]+)\s+os_prio=(?P<os_prio>[0-9]+)\s+tid=(?P<tid>0x[0-9a-f]+)\s+nid=(?P<nid>0x[0-9a-f]+).+`)
-	r2 := regexp.MustCompile(`^"(?P<name>[^"]+)"\s+os_prio=(?P<os_prio>[0-9]+)\s+tid=(?P<tid>0x[0-9a-f]+)\s+nid=(?P<nid>0x[0-9a-f]+).+`)
+	r1 := regexp.MustCompile(THREAD_DESCRIPTOR1)
+	r2 := regexp.MustCompile(THREAD_DESCRIPTOR2)
 
 
 	switch {
@@ -39,22 +42,24 @@ func DecomposeTreadDumpLine(threadDumpLine string) (groups map[string] string, e
 }
 
 // Parse a Java thread dump taken with JStack (or with SIGQUIT)
-func ParseThreadDump(threadDump string) (map[string] int, error) {
-	nameToNative := make(map[string] int)
+func ParseThreadDump(threadDump string) (*ThreadList, error) {
+	nameToNative := NewThreadList()//NewThreadGroup(THREAD_DESCRIPTOR1)
 	lines := strings.Split(threadDump, "\n")
 
 	for _, line := range lines {
 		fields, err := DecomposeTreadDumpLine(line)
 		if err != nil {
-			return nameToNative, err
+			return &nameToNative, err
 		}
 		// ParseInt base = 0 -> It is implied to be 16 by the 0x prefix
 		val, _ := strconv.ParseInt(fields["nid"], 0, 0)
-		nameToNative[fields["name"]] = int(val)
+		if(fields["name"] != "") {
+			nameToNative = append(nameToNative, Thread{Name: fields["name"], Tid: int(val)})
+		}
 	}
 
 
-	return nameToNative, nil
+	return &nameToNative, nil
 }
 
 // Take a thread dump with JStack

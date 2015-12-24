@@ -46,6 +46,10 @@ func main() {
 
 	fmt.Println(parsed)
 
-	fmt.Println(len(parsed))
+	for _,v := range *parsed {
+		fmt.Println(v.Name)
+	}
+
+	//fmt.Println(len(*parsed.threads))
 
 }
