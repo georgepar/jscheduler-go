@@ -28,9 +28,12 @@ func SetAffinity(pid int, cpus []int) error {
 }
 
 
-func SetAffinityThreadGroup(threads *ThreadGroup, cpus []int) error {
-	for _, t := range threads.Threads {
-		err := SetAffinity(t.Tid , cpus)
+func SetAffinityThreadGroup(threads *ThreadList) error {
+	for _, t := range *threads {
+		if !t.HasSpec {
+			return error("No Thread Specification Set")
+		}
+		err := SetAffinity(t.Tid , t.Cpus)
 		if err != nil {
 			return err
 		}
@@ -38,9 +41,12 @@ func SetAffinityThreadGroup(threads *ThreadGroup, cpus []int) error {
 	return nil
 }
 
-func SetPriorityThreadGroup(threads *ThreadGroup, prio int) error {
-	for _, t := range threads.Threads {
-		err := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, prio)
+func SetPriorityThreadGroup(threads *ThreadList) error {
+	for _, t := range *threads {
+		if !t.HasSpec {
+			return error("No Thread Specification Set")
+		}
+		err := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, t.Prio)
 		if err != nil {
 			return err
 		}
@@ -48,13 +54,16 @@ func SetPriorityThreadGroup(threads *ThreadGroup, prio int) error {
 	return nil
 }
 
-func RescheduleThreadGroup(threads *ThreadGroup, cpus []int, prio int) error {
-	for _, t := range threads.Threads {
-		err := SetAffinity(t.Tid , cpus)
+func RescheduleThreadGroup(threads *ThreadList) error {
+	for _, t := range *threads {
+		if !t.HasSpec {
+			return error("No Thread Specification Set")
+		}
+		err := SetAffinity(t.Tid , t.Cpus)
 		if err != nil {
 			return err
 		}
-		err1 := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, prio)
+		err1 := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, t.Prio)
 		if err1 != nil {
 			return err1
 		}

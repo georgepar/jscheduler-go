@@ -11,7 +11,7 @@ const THREAD_DESCRIPTOR1 string = `^"(?P<name>[^"]+)".+prio=(?P<prio>[0-9]+)\s+o
 const THREAD_DESCRIPTOR2 string = `^"(?P<name>[^"]+)"\s+os_prio=(?P<os_prio>[0-9]+)\s+tid=(?P<tid>0x[0-9a-f]+)\s+nid=(?P<nid>0x[0-9a-f]+).+`
 
 // Use the given regex to decompose a line of the thread dump into the matched fields
-func DecomposeTreadDumpLineRe(threadDumpLine string, r *regexp.Regexp) (groups map[string] string, err error) {
+func decomposeTreadDumpLineRe(threadDumpLine string, r *regexp.Regexp) (groups map[string] string, err error) {
 	matches := r.FindStringSubmatch(threadDumpLine)
 	names := r.SubexpNames()
 
@@ -25,7 +25,7 @@ func DecomposeTreadDumpLineRe(threadDumpLine string, r *regexp.Regexp) (groups m
 }
 
 // Match the groups of a thread dump line and get the corresponding fields
-func DecomposeTreadDumpLine(threadDumpLine string) (groups map[string] string, err error) {
+func decomposeTreadDumpLine(threadDumpLine string) (groups map[string] string, err error) {
 	//TODO: Optimize/Combine regex. One thread is slipping away when testing on the Intellij process.
 	r1 := regexp.MustCompile(THREAD_DESCRIPTOR1)
 	r2 := regexp.MustCompile(THREAD_DESCRIPTOR2)
@@ -33,9 +33,9 @@ func DecomposeTreadDumpLine(threadDumpLine string) (groups map[string] string, e
 
 	switch {
 	case r1.MatchString(threadDumpLine):
-		groups, err = DecomposeTreadDumpLineRe(threadDumpLine, r1)
+		groups, err = decomposeTreadDumpLineRe(threadDumpLine, r1)
 	case r2.MatchString(threadDumpLine):
-		groups, err = DecomposeTreadDumpLineRe(threadDumpLine, r2)
+		groups, err = decomposeTreadDumpLineRe(threadDumpLine, r2)
 	}
 
 	return
@@ -47,20 +47,21 @@ func ParseThreadDump(threadDump string) (*ThreadList, error) {
 	lines := strings.Split(threadDump, "\n")
 
 	for _, line := range lines {
-		fields, err := DecomposeTreadDumpLine(line)
+		fields, err := decomposeTreadDumpLine(line)
 		if err != nil {
 			return &nameToNative, err
 		}
 		// ParseInt base = 0 -> It is implied to be 16 by the 0x prefix
 		val, _ := strconv.ParseInt(fields["nid"], 0, 0)
 		if(fields["name"] != "") {
-			nameToNative = append(nameToNative, Thread{Name: fields["name"], Tid: int(val)})
+			nameToNative = append(nameToNative, NewThread(fields["name"], int(val)))
 		}
 	}
 
 
 	return &nameToNative, nil
 }
+
 
 // Take a thread dump with JStack
 //TODO: Can be done natively with syscall.Kill(pid, SIGQUIT) if we find a way to capture the output
