@@ -1,8 +1,9 @@
 package jscheduler
+
 import (
-	"unsafe"
-	"syscall"
 	"golang.org/x/sys/unix"
+	"syscall"
+	"unsafe"
 )
 
 // SetAffinity attend the cpu list to pid,
@@ -18,22 +19,21 @@ func SetAffinity(pid int, cpus []int) error {
 	}
 	for _, cpuIdx := range cpus {
 		cpuIndex := uint(cpuIdx)
-		mask[cpuIndex / 64] |= 1 << (cpuIndex % 64)
+		mask[cpuIndex/64] |= 1 << (cpuIndex % 64)
 	}
-	_, _, err := syscall.RawSyscall(unix.SYS_SCHED_SETAFFINITY, uintptr(pid), uintptr(len(mask) * 8), uintptr(unsafe.Pointer(&mask[0])))
+	_, _, err := syscall.RawSyscall(unix.SYS_SCHED_SETAFFINITY, uintptr(pid), uintptr(len(mask)*8), uintptr(unsafe.Pointer(&mask[0])))
 	if err != 0 {
 		return err
 	}
 	return nil
 }
 
-
 func SetAffinityThreadGroup(threads *ThreadList) error {
 	for _, t := range *threads {
 		if !t.HasSpec {
 			return error("No Thread Specification Set")
 		}
-		err := SetAffinity(t.Tid , t.Cpus)
+		err := SetAffinity(t.Tid, t.Cpus)
 		if err != nil {
 			return err
 		}
@@ -59,7 +59,7 @@ func RescheduleThreadGroup(threads *ThreadList) error {
 		if !t.HasSpec {
 			return error("No Thread Specification Set")
 		}
-		err := SetAffinity(t.Tid , t.Cpus)
+		err := SetAffinity(t.Tid, t.Cpus)
 		if err != nil {
 			return err
 		}

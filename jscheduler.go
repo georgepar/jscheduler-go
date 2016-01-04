@@ -1,20 +1,18 @@
 package main
+
 import (
 	"./jscheduler"
 	"fmt"
-	"os/signal"
 	"os"
-	"syscall"
+	"os/signal"
 	"sort"
+	"syscall"
 )
-
-
 
 func main() {
 	// Get command line args
 
-
-	threadCount := make(map[string] int)
+	threadCount := make(map[string]int)
 
 	// Print thread occurrence count on CTRL-C
 	c := make(chan os.Signal, 1)
@@ -23,11 +21,11 @@ func main() {
 	go func() {
 		<-c
 		keys := make([]string, 0, len(threadCount))
-		for k := range(threadCount) {
+		for k := range threadCount {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
-		for _, k := range(keys) {
+		for _, k := range keys {
 			fmt.Printf("%s: %d", k, threadCount[k])
 		}
 		os.Exit(1)
@@ -44,21 +42,19 @@ func main() {
 
 	}
 
+	/*
+		out, _ := jscheduler.GetThreadDump("34768")
 
+		fmt.Println(out)
 
-/*
-	out, _ := jscheduler.GetThreadDump("34768")
+		parsed, _ := jscheduler.ParseThreadDump(out)
 
-	fmt.Println(out)
+		fmt.Println(parsed)
 
-	parsed, _ := jscheduler.ParseThreadDump(out)
+		for _,v := range *parsed {
+			fmt.Println(v.Name)
+		}
 
-	fmt.Println(parsed)
-
-	for _,v := range *parsed {
-		fmt.Println(v.Name)
-	}
-
-	//fmt.Println(len(*parsed.threads))
-*/
+		//fmt.Println(len(*parsed.threads))
+	*/
 }
