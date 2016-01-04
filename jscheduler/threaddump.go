@@ -4,6 +4,8 @@ import (
 	"os/exec"
 	"strings"
 	"strconv"
+	"os"
+	"fmt"
 )
 
 
@@ -66,6 +68,7 @@ func ParseThreadDump(threadDump string) (*ThreadList, error) {
 // Take a thread dump with JStack
 //TODO: Can be done natively with syscall.Kill(pid, SIGQUIT) if we find a way to capture the output
 func GetThreadDump(pid string) (string, error) {
-	out, err := exec.Command("/opt/oracle/jdk1.8.0_51/bin/jstack", "-l", pid).Output()
+	cmd := fmt.Sprintf("%s/%s", os.Getenv("JAVA_HOME"), "jstack")
+	out, err := exec.Command(cmd, "-l", pid).Output()
 	return string(out), err
 }

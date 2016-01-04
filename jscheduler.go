@@ -2,42 +2,51 @@ package main
 import (
 	"./jscheduler"
 	"fmt"
+	"os/signal"
+	"os"
+	"syscall"
+	"sort"
 )
 
 
 
 func main() {
-	/*
-		example := `
-		"Reference Handler" #2 daemon prio=10 os_prio=0 tid=0x00007f1ff8409000 nid=0xb14 in Object.wait()
-		basghahav
-		blahhhh
-		basghahipj
-		asghash
-		"Gang worker#18 (Parallel GC Threads)" os_prio=0 tid=0x00007f1ff803a000 nid=0xb07 runnable
-		325235235
-		235
-		51235
-		135
-		gwsdgwsedg
-		"Concurrent Mark-Sweep GC Thread" os_prio=0 tid=0x00007f1ff8159800 nid=0xb12 runnable
-		sdhah
-		asedh
-		"Concurrent Mark-Sweep GC Thread" os_prio=0 tid=0x00007f1ff8159800 nid=0xb12 runnable
-		`
-	*/
-	//g1, _ := IsThreadDescription("\"Reference Handler\" #2 daemon prio=10 os_prio=0 tid=0x00007f1ff8409000 nid=0xb14 in Object.wait()")
-	//g2, _ := IsThreadDescription("\"Gang worker#18 (Parallel GC Threads)\" os_prio=0 tid=0x00007f1ff803a000 nid=0xb07 runnable")
-	//g3, _ := IsThreadDescription("\"Concurrent Mark-Sweep GC Thread\" os_prio=0 tid=0x00007f1ff8159800 nid=0xb12 runnable")
-
-	//fmt.Println(g1["nid"])
-	//fmt.Println(g2["nid"])
-	//fmt.Println(g3["nid"])
-
-	//out, _ := exec.Command("/opt/oracle/jdk1.8.0_51/bin/jstack", "-l", "10188").Output()
+	// Get command line args
 
 
+	threadCount := make(map[string] int)
 
+	// Print thread occurrence count on CTRL-C
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		<-c
+		keys := make([]string, 0, len(threadCount))
+		for k := range(threadCount) {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range(keys) {
+			fmt.Printf("%s: %d", k, threadCount[k])
+		}
+		os.Exit(1)
+	}()
+
+	for {
+		// Get thread dump
+
+		// Parse thread dump
+
+		// Filter thread groups
+
+		// Assign thread groups to CPU pool
+
+	}
+
+
+
+/*
 	out, _ := jscheduler.GetThreadDump("34768")
 
 	fmt.Println(out)
@@ -51,5 +60,5 @@ func main() {
 	}
 
 	//fmt.Println(len(*parsed.threads))
-
+*/
 }
