@@ -66,18 +66,18 @@ func ParseThreadDump(threadDump string) (*ThreadList, error) {
 
 
 func AdjustThreadSpecs(threads *ThreadList, specs *[]ThreadSpecification) {
-	for _, spec := range specs {
-		for _, thread := range threads {
+	for _, spec := range *specs {
+		for _, thread := range *threads {
 			if(spec.Filter.MatchString(thread.Name)) {
-				thread.SetSpec(spec)
+				thread.SetSpec(&spec)
 			}
 		}
 	}
 }
 
 
-func GetJstackThreadDump(java_home string, pid string) {
-	cmd := fmt.Sprintf("%s/%s", java_home, "jstack")
+func GetJstackThreadDump(java_home string, pid string) (string, error) {
+	cmd := fmt.Sprintf("%s/bin/%s", java_home, "jstack")
 	out, err := exec.Command(cmd, "-l", pid).Output()
 	return string(out), err
 }
@@ -86,7 +86,7 @@ func GetJstackThreadDump(java_home string, pid string) {
 // Take a thread dump with JStack
 //TODO: Can be done natively with syscall.Kill(pid, SIGQUIT) if we find a way to capture the output
 func GetThreadDump(pid string) (string, error) {
-	cmd := fmt.Sprintf("%s/%s", os.Getenv("JAVA_HOME"), "jstack")
+	cmd := fmt.Sprintf("%s/bin/%s", os.Getenv("JAVA_HOME"), "jstack")
 	out, err := exec.Command(cmd, "-l", pid).Output()
 	return string(out), err
 }

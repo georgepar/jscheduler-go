@@ -1,29 +1,47 @@
 package main
 
 import (
-	"./jscheduler"
-	"fmt"
-	"os"
-	"os/signal"
-	"sort"
-	"syscall"
 	"flag"
+	"os"
+	"./jscheduler"
+	"os/signal"
+	"syscall"
+	"sort"
+	"fmt"
 	"time"
 )
 
-
 func main() {
 	// Get command line args
-	var pid int
+	var pid string
 	var interval int
+	var help bool
 	threadSpecs := jscheduler.NewThreadSpecArgList()
 
-	flag.IntVar(&pid, "pid", 0, "The pid of the monitored java process")
-	flag.IntVar(&interval, "interval", 3000, "Time to wait between polling jstack in milliseconds")
-	flag.Var(&threadSpecs, "thread specs", "The threads which need to be rescheduled and the scheduling options")
+	threadSpecUsage := `The threads which need to be rescheduled and the scheduling options.
+    Must be given in the format:
+        threadNameRegex1;threadPriority1;cpuPool1::threadNameRegex2;threadPriority2;cpuPool2::...
+    The above configuration will pin the threads that match with threadNameRegex1 to cpuPool1
+    with priority threadPriority1 e.t.c.
+    Priorities and cpu pools may be left unspecified (but the semicolons must exist),
+    in which case the default values given by the OS will be left untouched.
+    For example:
+        threadNameRegex1;cpuPool1::threadNameRegex2;threadPriority2;::...
+    `
 
-	if help := flag.Bool("help", false, "Display usage information"); *help {
-		fmt.Println(flag.Usage())
+
+	flag.BoolVar(&help, "help", false, "Display usage information")
+	flag.StringVar(&pid, "pid", "-1", "The pid of the monitored java process. This argument is required.")
+	flag.IntVar(&interval, "interval", 3000, "Time to wait between polling jstack in milliseconds. Default value is 3s.")
+	flag.Var(&threadSpecs, "thread specs", threadSpecUsage)
+
+
+	flag.Parse()
+
+
+	if pid == "-1" {
+		flag.Usage()
+		os.Exit(1)
 	}
 
 	threadCount := make(map[string]int)
@@ -37,7 +55,6 @@ func main() {
 		printThreadCount(threadCount)
 		os.Exit(1)
 	}()
-
 
 	for {
 		// Get thread dump
@@ -55,12 +72,12 @@ func main() {
 		}
 
 		// Filter and adjust thread specs
-		jscheduler.AdjustThreadSpecs(&threads, &threadSpecs.Get())
+		jscheduler.AdjustThreadSpecs(threads, &threadSpecs.Value)
 
 		// Set Thread affinities and priorities
 		jscheduler.RescheduleThreadGroup(threads)
 
-		time.Sleep(interval * time.Millisecond)
+		time.Sleep(time.Duration(interval) * time.Millisecond)
 	}
 
 	/*
@@ -80,7 +97,11 @@ func main() {
 	*/
 }
 
+
 func printThreadCount(threadCount map[string] int) {
+	if len(threadCount) == 0 {
+		fmt.Println("No threads found")
+	}
 	keys := make([]string, 0, len(threadCount))
 	for k := range threadCount {
 		keys = append(keys, k)

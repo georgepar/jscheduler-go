@@ -62,8 +62,9 @@ type ThreadSpecification struct {
 }
 
 func NewThreadSpecification() ThreadSpecification {
+	filter, _ := regexp.Compile("")
 	return ThreadSpecification{
-		Filter: &regexp.Compile(""),
+		Filter: filter,
 		Prio: 0,
 		Cpus: NewEmptyCpuPool(),
 	}
@@ -107,22 +108,25 @@ func NewThreadList() ThreadList {
 
 
 type ThreadSpecArgList struct {
-	FlagValue []ThreadSpecification
+	Value []ThreadSpecification
 }
 
 func NewThreadSpecArgList() ThreadSpecArgList {
 	return ThreadSpecArgList{
-		FlagValue: make([]ThreadSpecification, 0),
+		Value: make([]ThreadSpecification, 0),
 	}
 }
 
 func (lst *ThreadSpecArgList) String() string {
 	strLst := make([]string, 0)
 
-	for _, el := range lst.FlagValue {
+	for _, el := range lst.Value {
 		filter := el.Filter.String()
 		prio := el.Prio
-		cpus := strings.Join(el.Cpus[:], ",")
+		cpus := strconv.Itoa(el.Cpus[0])
+		for _, c := range el.Cpus[1:] {
+			cpus += fmt.Sprintf(",%s", strconv.Itoa(c))
+		}
 		strLst = append(strLst, fmt.Sprintf("\"%s\";%d;%s", filter, prio, cpus))
 	}
 
@@ -132,28 +136,28 @@ func (lst *ThreadSpecArgList) String() string {
 
 func (lst *ThreadSpecArgList) Set(s string) error {
 	strLst := strings.Split(s, "::")
-	lst.FlagValue = make([]ThreadSpecification, 0)
+	lst.Value = make([]ThreadSpecification, 0)
 	for _, el := range strLst {
 		ts := NewThreadSpecification()
 		tsEl := strings.Split(el, ";")
 		if tsEl[0] != "" {
-			ts.Filter = &regexp.Compile(tsEl[0])
+			ts.Filter, _ = regexp.Compile(tsEl[0])
 		}
 		if tsEl[1] != "" {
-			ts.Prio = int(tsEl[1])
+			ts.Prio, _ = strconv.Atoi(tsEl[1])
 		}
 		if tsEl[2] != "" {
 			ts.Cpus = ParseCpuPool(tsEl[2])
 		}
-		lst.FlagValue = append(lst.FlagValue, ts)
+		lst.Value = append(lst.Value, ts)
 	}
 	return nil
 }
 
 func (lst *ThreadSpecArgList) Get() []ThreadSpecification {
-	return lst.FlagValue
+	return lst.Value
 }
 
 func (lst *ThreadSpecArgList) IsSet() bool {
-	return len(lst.FlagValue) > 0
+	return len(lst.Value) > 0
 }

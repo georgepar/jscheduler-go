@@ -4,6 +4,7 @@ import (
 	"golang.org/x/sys/unix"
 	"syscall"
 	"unsafe"
+	"errors"
 )
 
 // SetAffinity attend the cpu list to pid,
@@ -31,7 +32,7 @@ func SetAffinity(pid int, cpus []int) error {
 func SetAffinityThreadGroup(threads *ThreadList) error {
 	for _, t := range *threads {
 		if !t.HasSpec {
-			return error("No Thread Specification Set")
+			return errors.New("No Thread Specification Set")
 		}
 		if err := SetAffinity(t.Tid, t.Cpus); err != nil {
 			return err
@@ -43,7 +44,7 @@ func SetAffinityThreadGroup(threads *ThreadList) error {
 func SetPriorityThreadGroup(threads *ThreadList) error {
 	for _, t := range *threads {
 		if !t.HasSpec {
-			return error("No Thread Specification Set")
+			return errors.New("No Thread Specification Set")
 		}
 		if err := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, t.Prio); err != nil {
 			return err
@@ -55,7 +56,7 @@ func SetPriorityThreadGroup(threads *ThreadList) error {
 func RescheduleThreadGroup(threads *ThreadList) error {
 	for _, t := range *threads {
 		if !t.HasSpec {
-			return error("No Thread Specification Set")
+			return errors.New("No Thread Specification Set")
 		}
 		if err := SetAffinity(t.Tid, t.Cpus); err != nil {
 			return err
