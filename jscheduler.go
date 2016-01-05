@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./jscheduler"
+	"github.com/georgepar/jscheduler-go/jscheduler"
 	"flag"
 	"fmt"
 	"os"
