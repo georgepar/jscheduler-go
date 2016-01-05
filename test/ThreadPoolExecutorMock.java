@@ -1,4 +1,4 @@
-package com.telecom.intracom;
+package test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -20,11 +20,35 @@ public class ThreadPoolExecutorMock {
                         1, // max pool size
                         0, TimeUnit.MILLISECONDS, // keep alive
                         new LinkedBlockingQueue<>(1), // queue
+                        new ThreadPoolExecutor.CallerRunsPolicy()),
+                new ThreadPoolExecutor(
+                        1, // core pool size
+                        1, // max pool size
+                        0, TimeUnit.MILLISECONDS, // keep alive
+                        new LinkedBlockingQueue<>(1), // queue
+                        new ThreadPoolExecutor.CallerRunsPolicy()),
+                new ThreadPoolExecutor(
+                        1, // core pool size
+                        1, // max pool size
+                        0, TimeUnit.MILLISECONDS, // keep alive
+                        new LinkedBlockingQueue<>(1), // queue
+                        new ThreadPoolExecutor.CallerRunsPolicy()),
+                 new ThreadPoolExecutor(
+                        1, // core pool size
+                        1, // max pool size
+                        0, TimeUnit.MILLISECONDS, // keep alive
+                        new LinkedBlockingQueue<>(1), // queue
+                        new ThreadPoolExecutor.CallerRunsPolicy()),
+                new ThreadPoolExecutor(
+                        1, // core pool size
+                        1, // max pool size
+                        0, TimeUnit.MILLISECONDS, // keep alive
+                        new LinkedBlockingQueue<>(1), // queue
                         new ThreadPoolExecutor.CallerRunsPolicy())
         }; // handler
 
         System.out.println("Main thread name " + Thread.currentThread().getName());
-        for (int i = 0; i<2; i++) {
+        for (int i = 0; i<6; i++) {
             executors[i].submit(() -> {
                 System.out.println("Entering thread " + Thread.currentThread().getName() + " #" + Thread.currentThread().getId());
                 final int NUM_TESTS = 1000;
