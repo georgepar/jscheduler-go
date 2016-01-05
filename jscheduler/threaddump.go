@@ -46,7 +46,7 @@ func decomposeTreadDumpLine(threadDumpLine string) (groups map[string]string, er
 
 // Parse a Java thread dump taken with JStack (or with SIGQUIT)
 func ParseThreadDump(threadDump string) (*ThreadList, error) {
-	nameToNative := NewThreadList() //NewThreadGroup(THREAD_DESCRIPTOR1)
+	nameToNative := NewThreadList() 
 	lines := strings.Split(threadDump, "\n")
 
 	for _, line := range lines {
@@ -60,19 +60,21 @@ func ParseThreadDump(threadDump string) (*ThreadList, error) {
 			nameToNative = append(nameToNative, NewThread(fields["name"], int(val)))
 		}
 	}
-
 	return &nameToNative, nil
 }
 
 
-func AdjustThreadSpecs(threads *ThreadList, specs *[]ThreadSpecification) {
-	for _, spec := range *specs {
-		for _, thread := range *threads {
-			if(spec.Filter.MatchString(thread.Name)) {
-				thread.SetSpec(&spec)
+func AdjustThreadSpecs(threads ThreadList, specs []ThreadSpecification) ThreadList {
+	for i, _ := range specs {
+		for j, _ := range threads {
+			if(regexp.MustCompile(specs[i].Filter).MatchString(threads[i].Name)) {
+				threads[j].SetSpec(specs[i])
+                fmt.Println(threads[j])
 			}
 		}
 	}
+
+    return threads
 }
 
 

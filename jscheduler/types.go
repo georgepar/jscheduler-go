@@ -52,19 +52,19 @@ func ParseCpuPool(pool string) CpuPool{
 			}
 		}
 	}
+    fmt.Println("Parsed CPU pool:", cpus) 
 	return cpus
 }
 
 type ThreadSpecification struct {
-	Filter *regexp.Regexp
+	Filter string
 	Prio   int
 	Cpus   CpuPool
 }
 
 func NewThreadSpecification() ThreadSpecification {
-	filter, _ := regexp.Compile("")
 	return ThreadSpecification{
-		Filter: filter,
+		Filter: "",
 		Prio: 0,
 		Cpus: NewEmptyCpuPool(),
 	}
@@ -88,13 +88,13 @@ func NewThread(name string, tid int) Thread {
 	}
 }
 
-func (t *Thread) FilterAndSetSpec(spec *ThreadSpecification) {
-	if spec.Filter.MatchString(t.Name) {
+func (t *Thread) FilterAndSetSpec(spec ThreadSpecification) {
+	if regexp.MustCompile(spec.Filter).MatchString(t.Name) {
 		t.SetSpec(spec)
 	}
 }
 
-func (t *Thread) SetSpec(spec *ThreadSpecification) {
+func (t *Thread) SetSpec(spec ThreadSpecification) {
 	t.Prio = spec.Prio
 	t.Cpus = spec.Cpus
 	t.HasSpec = true
@@ -121,7 +121,7 @@ func (lst *ThreadSpecArgList) String() string {
 	strLst := make([]string, 0)
 
 	for _, el := range lst.Value {
-		filter := el.Filter.String()
+		filter := el.Filter
 		prio := el.Prio
 		cpus := strconv.Itoa(el.Cpus[0])
 		for _, c := range el.Cpus[1:] {
@@ -137,20 +137,26 @@ func (lst *ThreadSpecArgList) String() string {
 func (lst *ThreadSpecArgList) Set(s string) error {
 	strLst := strings.Split(s, "::")
 	lst.Value = make([]ThreadSpecification, 0)
+    fmt.Println("Thread Schedule Configuration")
 	for _, el := range strLst {
 		ts := NewThreadSpecification()
 		tsEl := strings.Split(el, ";")
 		if tsEl[0] != "" {
-			ts.Filter, _ = regexp.Compile(tsEl[0])
+            fmt.Printf("    Filter: %s\n", tsEl[0])
+			ts.Filter = tsEl[0]
 		}
 		if tsEl[1] != "" {
+            fmt.Printf("    Priority: %s\n", tsEl[1])
 			ts.Prio, _ = strconv.Atoi(tsEl[1])
 		}
 		if tsEl[2] != "" {
+            fmt.Printf("    Cpu Pool: %s\n", tsEl[2])
 			ts.Cpus = ParseCpuPool(tsEl[2])
 		}
 		lst.Value = append(lst.Value, ts)
 	}
+    
+    fmt.Println(lst.Value)
 	return nil
 }
 

@@ -33,7 +33,7 @@ func main() {
 	flag.BoolVar(&help, "help", false, "Display usage information")
 	flag.StringVar(&pid, "pid", "-1", "The pid of the monitored java process. This argument is required.")
 	flag.IntVar(&interval, "interval", 3000, "Time to wait between polling jstack in milliseconds. Default value is 3s.")
-	flag.Var(&threadSpecs, "thread specs", threadSpecUsage)
+	flag.Var(&threadSpecs, "thread-specs", threadSpecUsage)
 
 
 	flag.Parse()
@@ -59,7 +59,6 @@ func main() {
 	for {
 		// Get thread dump
 		threadDump, err := jscheduler.GetJstackThreadDump(os.Getenv("JAVA_HOME"), pid)
-		fmt.Println(threadDump)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -73,7 +72,7 @@ func main() {
 		}
 
 		// Filter and adjust thread specs
-		jscheduler.AdjustThreadSpecs(threads, &threadSpecs.Value)
+		*threads = jscheduler.AdjustThreadSpecs(*threads, threadSpecs.Get())
 
 		// Set Thread affinities and priorities
 		jscheduler.RescheduleThreadGroup(threads)

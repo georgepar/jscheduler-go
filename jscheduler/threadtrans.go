@@ -1,6 +1,7 @@
 package jscheduler
 
 import (
+    "fmt"
 	"golang.org/x/sys/unix"
 	"syscall"
 	"unsafe"
@@ -34,6 +35,7 @@ func SetAffinityThreadGroup(threads *ThreadList) error {
 		if !t.HasSpec {
 			return errors.New("No Thread Specification Set")
 		}
+        fmt.Println("Pinning thread", t.Name, "to CPU set", t.Cpus)
 		if err := SetAffinity(t.Tid, t.Cpus); err != nil {
 			return err
 		}
