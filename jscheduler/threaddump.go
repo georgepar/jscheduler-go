@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+
+
 const THREAD_DESCRIPTOR1 string = `^"(?P<name>[^"]+)".+prio=(?P<prio>[0-9]+)\s+os_prio=(?P<os_prio>[0-9]+)\s+tid=(?P<tid>0x[0-9a-f]+)\s+nid=(?P<nid>0x[0-9a-f]+).+`
 const THREAD_DESCRIPTOR2 string = `^"(?P<name>[^"]+)"\s+os_prio=(?P<os_prio>[0-9]+)\s+tid=(?P<tid>0x[0-9a-f]+)\s+nid=(?P<nid>0x[0-9a-f]+).+`
 
@@ -61,6 +63,25 @@ func ParseThreadDump(threadDump string) (*ThreadList, error) {
 
 	return &nameToNative, nil
 }
+
+
+func AdjustThreadSpecs(threads *ThreadList, specs *[]ThreadSpecification) {
+	for _, spec := range specs {
+		for _, thread := range threads {
+			if(spec.Filter.MatchString(thread.Name)) {
+				thread.SetSpec(spec)
+			}
+		}
+	}
+}
+
+
+func GetJstackThreadDump(java_home string, pid string) {
+	cmd := fmt.Sprintf("%s/%s", java_home, "jstack")
+	out, err := exec.Command(cmd, "-l", pid).Output()
+	return string(out), err
+}
+
 
 // Take a thread dump with JStack
 //TODO: Can be done natively with syscall.Kill(pid, SIGQUIT) if we find a way to capture the output

@@ -7,10 +7,24 @@ import (
 	"os/signal"
 	"sort"
 	"syscall"
+	"flag"
+	"time"
 )
+
 
 func main() {
 	// Get command line args
+	var pid int
+	var interval int
+	threadSpecs := jscheduler.NewThreadSpecArgList()
+
+	flag.IntVar(&pid, "pid", 0, "The pid of the monitored java process")
+	flag.IntVar(&interval, "interval", 3000, "Time to wait between polling jstack in milliseconds")
+	flag.Var(&threadSpecs, "thread specs", "The threads which need to be rescheduled and the scheduling options")
+
+	if help := flag.Bool("help", false, "Display usage information"); *help {
+		fmt.Println(flag.Usage())
+	}
 
 	threadCount := make(map[string]int)
 
@@ -20,26 +34,33 @@ func main() {
 	signal.Notify(c, syscall.SIGTERM)
 	go func() {
 		<-c
-		keys := make([]string, 0, len(threadCount))
-		for k := range threadCount {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			fmt.Printf("%s: %d", k, threadCount[k])
-		}
+		printThreadCount(threadCount)
 		os.Exit(1)
 	}()
 
+
 	for {
 		// Get thread dump
+		threadDump, err := jscheduler.GetJstackThreadDump(os.Getenv("JAVA_HOME"), pid)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 
 		// Parse thread dump
+		threads, err := jscheduler.ParseThreadDump(threadDump)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 
-		// Filter thread groups
+		// Filter and adjust thread specs
+		jscheduler.AdjustThreadSpecs(&threads, &threadSpecs.Get())
 
-		// Assign thread groups to CPU pool
+		// Set Thread affinities and priorities
+		jscheduler.RescheduleThreadGroup(threads)
 
+		time.Sleep(interval * time.Millisecond)
 	}
 
 	/*
@@ -57,4 +78,15 @@ func main() {
 
 		//fmt.Println(len(*parsed.threads))
 	*/
+}
+
+func printThreadCount(threadCount map[string] int) {
+	keys := make([]string, 0, len(threadCount))
+	for k := range threadCount {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		fmt.Printf("%s: %d", k, threadCount[k])
+	}
 }
