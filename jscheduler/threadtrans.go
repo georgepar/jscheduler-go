@@ -1,11 +1,11 @@
 package jscheduler
 
 import (
-    "fmt"
+	"errors"
+	"fmt"
 	"golang.org/x/sys/unix"
 	"syscall"
 	"unsafe"
-	"errors"
 )
 
 // SetAffinity attend the cpu list to pid,
@@ -35,7 +35,7 @@ func SetAffinityThreadGroup(threads *ThreadList) error {
 		if !t.HasSpec {
 			return errors.New("No Thread Specification Set")
 		}
-        fmt.Println("Pinning thread", t.Name, "to CPU set", t.Cpus)
+		fmt.Println("Pinning thread", t.Name, "to CPU set", t.Cpus)
 		if err := SetAffinity(t.Tid, t.Cpus); err != nil {
 			return err
 		}

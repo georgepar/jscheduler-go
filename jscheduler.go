@@ -1,13 +1,13 @@
 package main
 
 import (
-	"flag"
-	"os"
 	"./jscheduler"
-	"os/signal"
-	"syscall"
-	"sort"
+	"flag"
 	"fmt"
+	"os"
+	"os/signal"
+	"sort"
+	"syscall"
 	"time"
 )
 
@@ -29,15 +29,12 @@ func main() {
         threadNameRegex1;cpuPool1::threadNameRegex2;threadPriority2;::...
     `
 
-
 	flag.BoolVar(&help, "help", false, "Display usage information")
 	flag.StringVar(&pid, "pid", "-1", "The pid of the monitored java process. This argument is required.")
 	flag.IntVar(&interval, "interval", 3000, "Time to wait between polling jstack in milliseconds. Default value is 3s.")
 	flag.Var(&threadSpecs, "thread-specs", threadSpecUsage)
 
-
 	flag.Parse()
-
 
 	if pid == "-1" {
 		flag.Usage()
@@ -81,8 +78,7 @@ func main() {
 	}
 }
 
-
-func printThreadCount(threadCount map[string] int) {
+func printThreadCount(threadCount map[string]int) {
 	if len(threadCount) == 0 {
 		fmt.Println("No threads found")
 	}

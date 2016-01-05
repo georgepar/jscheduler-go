@@ -1,11 +1,11 @@
 package jscheduler
 
 import (
+	"fmt"
 	"regexp"
 	"runtime"
-	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type CpuPool []int
@@ -24,7 +24,7 @@ func NewCpuPool(numCpus int) CpuPool {
 	return pool
 }
 
-func ParseCpuPool(pool string) CpuPool{
+func ParseCpuPool(pool string) CpuPool {
 	elements := strings.Split(pool, ",")
 	cpus := NewEmptyCpuPool()
 	cpuSet := make(map[int]struct{})
@@ -38,7 +38,7 @@ func ParseCpuPool(pool string) CpuPool{
 			}
 			c1, _ := strconv.Atoi(cpuRange[0])
 			c2, _ := strconv.Atoi(rangeSplit[0])
-			for c:=c1; c<=c2; c+=step {
+			for c := c1; c <= c2; c += step {
 				if _, cpuExists := cpuSet[c]; !cpuExists {
 					cpus = append(cpus, c)
 					cpuSet[c] = struct{}{}
@@ -52,7 +52,7 @@ func ParseCpuPool(pool string) CpuPool{
 			}
 		}
 	}
-    fmt.Println("Parsed CPU pool:", cpus) 
+	fmt.Println("Parsed CPU pool:", cpus)
 	return cpus
 }
 
@@ -65,8 +65,8 @@ type ThreadSpecification struct {
 func NewThreadSpecification() ThreadSpecification {
 	return ThreadSpecification{
 		Filter: "",
-		Prio: 0,
-		Cpus: NewEmptyCpuPool(),
+		Prio:   0,
+		Cpus:   NewEmptyCpuPool(),
 	}
 }
 
@@ -106,7 +106,6 @@ func NewThreadList() ThreadList {
 	return make([]Thread, 0)
 }
 
-
 type ThreadSpecArgList struct {
 	Value []ThreadSpecification
 }
@@ -133,30 +132,29 @@ func (lst *ThreadSpecArgList) String() string {
 	return strings.Join(strLst[:], "::")
 }
 
-
 func (lst *ThreadSpecArgList) Set(s string) error {
 	strLst := strings.Split(s, "::")
 	lst.Value = make([]ThreadSpecification, 0)
-    fmt.Println("Thread Schedule Configuration")
+	fmt.Println("Thread Schedule Configuration")
 	for _, el := range strLst {
 		ts := NewThreadSpecification()
 		tsEl := strings.Split(el, ";")
 		if tsEl[0] != "" {
-            fmt.Printf("    Filter: %s\n", tsEl[0])
+			fmt.Printf("    Filter: %s\n", tsEl[0])
 			ts.Filter = tsEl[0]
 		}
 		if tsEl[1] != "" {
-            fmt.Printf("    Priority: %s\n", tsEl[1])
+			fmt.Printf("    Priority: %s\n", tsEl[1])
 			ts.Prio, _ = strconv.Atoi(tsEl[1])
 		}
 		if tsEl[2] != "" {
-            fmt.Printf("    Cpu Pool: %s\n", tsEl[2])
+			fmt.Printf("    Cpu Pool: %s\n", tsEl[2])
 			ts.Cpus = ParseCpuPool(tsEl[2])
 		}
 		lst.Value = append(lst.Value, ts)
 	}
-    
-    fmt.Println(lst.Value)
+
+	fmt.Println(lst.Value)
 	return nil
 }
 

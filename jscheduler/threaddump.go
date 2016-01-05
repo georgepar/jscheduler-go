@@ -9,8 +9,6 @@ import (
 	"strings"
 )
 
-
-
 const THREAD_DESCRIPTOR1 string = `^"(?P<name>[^"]+)".+prio=(?P<prio>[0-9]+)\s+os_prio=(?P<os_prio>[0-9]+)\s+tid=(?P<tid>0x[0-9a-f]+)\s+nid=(?P<nid>0x[0-9a-f]+).+`
 const THREAD_DESCRIPTOR2 string = `^"(?P<name>[^"]+)"\s+os_prio=(?P<os_prio>[0-9]+)\s+tid=(?P<tid>0x[0-9a-f]+)\s+nid=(?P<nid>0x[0-9a-f]+).+`
 
@@ -46,7 +44,7 @@ func decomposeTreadDumpLine(threadDumpLine string) (groups map[string]string, er
 
 // Parse a Java thread dump taken with JStack (or with SIGQUIT)
 func ParseThreadDump(threadDump string) (*ThreadList, error) {
-	nameToNative := NewThreadList() 
+	nameToNative := NewThreadList()
 	lines := strings.Split(threadDump, "\n")
 
 	for _, line := range lines {
@@ -63,27 +61,24 @@ func ParseThreadDump(threadDump string) (*ThreadList, error) {
 	return &nameToNative, nil
 }
 
-
 func AdjustThreadSpecs(threads ThreadList, specs []ThreadSpecification) ThreadList {
 	for i, _ := range specs {
 		for j, _ := range threads {
-			if(regexp.MustCompile(specs[i].Filter).MatchString(threads[i].Name)) {
+			if regexp.MustCompile(specs[i].Filter).MatchString(threads[i].Name) {
 				threads[j].SetSpec(specs[i])
-                fmt.Println(threads[j])
+				fmt.Println(threads[j])
 			}
 		}
 	}
 
-    return threads
+	return threads
 }
-
 
 func GetJstackThreadDump(java_home string, pid string) (string, error) {
 	cmd := fmt.Sprintf("%s/bin/%s", java_home, "jstack")
 	out, err := exec.Command(cmd, "-l", pid).Output()
 	return string(out), err
 }
-
 
 // Take a thread dump with JStack
 //TODO: Can be done natively with syscall.Kill(pid, SIGQUIT) if we find a way to capture the output
