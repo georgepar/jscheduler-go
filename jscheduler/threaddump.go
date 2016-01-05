@@ -65,9 +65,9 @@ func AdjustThreadSpecs(threads ThreadList, specs []ThreadSpecification) ThreadLi
 	for _, spec := range specs {
 		for i, _ := range threads {
 			if regexp.MustCompile(spec.Filter).MatchString(threads[i].Name) {
-                if !threads[i].HasSpec {
-                    threads[i].SetSpec(spec)
-                }
+				if !threads[i].HasSpec {
+					threads[i].SetSpec(spec)
+				}
 			}
 		}
 	}

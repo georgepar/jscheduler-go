@@ -54,9 +54,9 @@ func SetPriorityThreadGroup(threads *ThreadList) error {
 }
 
 func RescheduleThreadGroup(threads *ThreadList) error {
-    fmt.Println(*threads)
+	fmt.Println(*threads)
 	for _, t := range *threads {
-        fmt.Println("thread", t.Name, "has spec", t.HasSpec)
+		fmt.Println("thread", t.Name, "has spec", t.HasSpec)
 		if !t.HasSpec {
 			continue
 		}
