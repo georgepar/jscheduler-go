@@ -59,6 +59,7 @@ func main() {
 	for {
 		// Get thread dump
 		threadDump, err := jscheduler.GetJstackThreadDump(os.Getenv("JAVA_HOME"), pid)
+		fmt.Println(threadDump)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -79,22 +80,6 @@ func main() {
 
 		time.Sleep(time.Duration(interval) * time.Millisecond)
 	}
-
-	/*
-		out, _ := jscheduler.GetThreadDump("34768")
-
-		fmt.Println(out)
-
-		parsed, _ := jscheduler.ParseThreadDump(out)
-
-		fmt.Println(parsed)
-
-		for _,v := range *parsed {
-			fmt.Println(v.Name)
-		}
-
-		//fmt.Println(len(*parsed.threads))
-	*/
 }
 
 
