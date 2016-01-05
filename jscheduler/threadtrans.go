@@ -1,7 +1,6 @@
 package jscheduler
 
 import (
-	"errors"
 	"fmt"
 	"golang.org/x/sys/unix"
 	"syscall"
@@ -33,9 +32,8 @@ func SetAffinity(pid int, cpus []int) error {
 func SetAffinityThreadGroup(threads *ThreadList) error {
 	for _, t := range *threads {
 		if !t.HasSpec {
-			return errors.New("No Thread Specification Set")
+			continue
 		}
-		fmt.Println("Pinning thread", t.Name, "to CPU set", t.Cpus)
 		if err := SetAffinity(t.Tid, t.Cpus); err != nil {
 			return err
 		}
@@ -46,7 +44,7 @@ func SetAffinityThreadGroup(threads *ThreadList) error {
 func SetPriorityThreadGroup(threads *ThreadList) error {
 	for _, t := range *threads {
 		if !t.HasSpec {
-			return errors.New("No Thread Specification Set")
+			continue
 		}
 		if err := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, t.Prio); err != nil {
 			return err
@@ -56,13 +54,17 @@ func SetPriorityThreadGroup(threads *ThreadList) error {
 }
 
 func RescheduleThreadGroup(threads *ThreadList) error {
+    fmt.Println(*threads)
 	for _, t := range *threads {
+        fmt.Println("thread", t.Name, "has spec", t.HasSpec)
 		if !t.HasSpec {
-			return errors.New("No Thread Specification Set")
+			continue
 		}
+		fmt.Println("Pinning thread", t.Name, "to CPU set", t.Cpus)
 		if err := SetAffinity(t.Tid, t.Cpus); err != nil {
 			return err
 		}
+		fmt.Println("Setting thread", t.Name, "priority to", t.Prio)
 		if err1 := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, t.Prio); err1 != nil {
 			return err1
 		}

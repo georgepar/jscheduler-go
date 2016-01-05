@@ -62,11 +62,12 @@ func ParseThreadDump(threadDump string) (*ThreadList, error) {
 }
 
 func AdjustThreadSpecs(threads ThreadList, specs []ThreadSpecification) ThreadList {
-	for i, _ := range specs {
-		for j, _ := range threads {
-			if regexp.MustCompile(specs[i].Filter).MatchString(threads[i].Name) {
-				threads[j].SetSpec(specs[i])
-				fmt.Println(threads[j])
+	for _, spec := range specs {
+		for i, _ := range threads {
+			if regexp.MustCompile(spec.Filter).MatchString(threads[i].Name) {
+                if !threads[i].HasSpec {
+                    threads[i].SetSpec(spec)
+                }
 			}
 		}
 	}
