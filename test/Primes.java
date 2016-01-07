@@ -5,7 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class ThreadPoolExecutorMock {
+public class Primes {
     public static void main(String[] args) {
 
         ExecutorService[] executors = {
@@ -51,6 +51,7 @@ public class ThreadPoolExecutorMock {
         for (int i = 0; i<6; i++) {
             executors[i].submit(() -> {
                 System.out.println("Entering thread " + Thread.currentThread().getName() + " #" + Thread.currentThread().getId());
+/*
                 final int NUM_TESTS = 1000;
                 long start = System.nanoTime();
                 for (int j = 0; j < NUM_TESTS; j++) {
@@ -61,6 +62,21 @@ public class ThreadPoolExecutorMock {
                 System.out.println("Thread " + Thread.currentThread().getName() +
                         " took " + (System.nanoTime() - start) / 1000000 +
                         "ms (expected " + (NUM_TESTS * 500) + ")");
+ */                       
+
+                for (long job = 1; job <= 1000000000; job++) {
+                    long count = 0;
+                    for (long k=3; k<=10000L; k++) {
+                        boolean isPrime = true;
+                        for (long j=2; j<=k/2 && isPrime; j++) {
+                            isPrime = k % j > 0;
+                        }
+                        if (isPrime) {
+                            count++;
+                        }
+                    }
+                    System.out.println(Thread.currentThread().getName() + ": " + job);
+                } 
             });
             executors[i].shutdown();
         }
