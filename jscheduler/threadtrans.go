@@ -3,9 +3,9 @@ package jscheduler
 import (
 	"fmt"
 	"golang.org/x/sys/unix"
+	"runtime"
 	"syscall"
 	"unsafe"
-    "runtime"
 )
 
 // SetAffinity attend the cpu list to pid,
@@ -61,9 +61,9 @@ func RescheduleThreadGroup(threads *ThreadList) error {
 		if !t.HasSpec {
 			continue
 		}
-        if len(t.Cpus) == 0 {
-            t.Cpus = NewCpuPool(runtime.NumCPU())
-        }
+		if len(t.Cpus) == 0 {
+			t.Cpus = NewCpuPool(runtime.NumCPU())
+		}
 		fmt.Println("Pinning thread", t.Name, "to CPU set", t.Cpus)
 		if err := SetAffinity(t.Tid, t.Cpus); err != nil {
 			return err

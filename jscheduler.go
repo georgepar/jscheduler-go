@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/georgepar/jscheduler-go/jscheduler"
 	"flag"
 	"fmt"
+	"github.com/georgepar/jscheduler-go/jscheduler"
 	"os"
 	"os/signal"
 	"sort"
