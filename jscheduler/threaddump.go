@@ -43,7 +43,7 @@ func decomposeTreadDumpLine(threadDumpLine string) (groups map[string]string, er
 }
 
 // Parse a Java thread dump taken with JStack (or with SIGQUIT)
-func ParseThreadDump(threadDump string) (*ThreadList, error) {
+func ParseThreadDump(threadDump string, excluded map[string]struct{}) (*ThreadList, error) {
 	nameToNative := NewThreadList()
 	lines := strings.Split(threadDump, "\n")
 
@@ -54,7 +54,7 @@ func ParseThreadDump(threadDump string) (*ThreadList, error) {
 		}
 		// ParseInt base = 0 -> It is implied to be 16 by the 0x prefix
 		val, _ := strconv.ParseInt(fields["nid"], 0, 0)
-		if fields["name"] != "" {
+		if _, ignore := excluded[fields["name"]]; !ignore && fields["name"] != "" {
 			nameToNative = append(nameToNative, NewThread(fields["name"], int(val)))
 		}
 	}

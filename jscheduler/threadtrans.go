@@ -64,11 +64,11 @@ func RescheduleThreadGroup(threads *ThreadList) error {
 		}
 		fmt.Println("Pinning thread", t.Name, "to CPU set", t.Cpus)
 		if err := SetAffinity(t.Tid, t.Cpus); err != nil {
-            return err
+			return err
 		}
 		fmt.Println("Setting thread", t.Name, "priority to", t.Prio)
 		if err1 := unix.Setpriority(unix.PRIO_PROCESS, t.Tid, t.Prio); err1 != nil {
-            return err1
+			return err1
 		}
 	}
 	return nil

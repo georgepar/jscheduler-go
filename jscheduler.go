@@ -42,6 +42,7 @@ func main() {
 	}
 
 	threadCount := make(map[string]int)
+	modifiedThreads := make(map[string]struct{})
 
 	// Print thread occurrence count on CTRL-C
 	c := make(chan os.Signal, 1)
@@ -62,7 +63,7 @@ func main() {
 		}
 
 		// Parse thread dump
-		threads, err := jscheduler.ParseThreadDump(threadDump)
+		threads, err := jscheduler.ParseThreadDump(threadDump, modifiedThreads)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -73,6 +74,13 @@ func main() {
 
 		// Set Thread affinities and priorities
 		jscheduler.RescheduleThreadGroup(threads)
+
+		for _, t := range *threads {
+			if t.HasSpec {
+				modifiedThreads[t.Name] = struct{}{}
+			}
+            threadCount[t.Name]++
+		}
 
 		time.Sleep(time.Duration(interval) * time.Millisecond)
 	}
@@ -88,6 +96,6 @@ func printThreadCount(threadCount map[string]int) {
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		fmt.Printf("%s: %d", k, threadCount[k])
+		fmt.Printf("%s: %d\n", k, threadCount[k])
 	}
 }
