@@ -26,37 +26,33 @@ public class Primes {
         System.out.println("Main thread name " + Thread.currentThread().getName());
         for (int i = 0; i<2; i++) {
             for (int thread = 0; thread < 5; thread++) {
-            executors[i].submit(() -> {
-                System.out.println("Entering thread " + Thread.currentThread().getName() + " #" + Thread.currentThread().getId());
-/*
-                final int NUM_TESTS = 1000;
-                long start = System.nanoTime();
-                for (int j = 0; j < NUM_TESTS; j++) {
-                    long sleepTime = 500 * 1000000L; // convert to nanoseconds
-                    long startTime = System.nanoTime();
-                    while ((System.nanoTime() - startTime) < sleepTime);
-                }
-                System.out.println("Thread " + Thread.currentThread().getName() +
-                        " took " + (System.nanoTime() - start) / 1000000 +
-                        "ms (expected " + (NUM_TESTS * 500) + ")");
- */                       
+                executors[i].submit(() -> {
+                    System.out.println("Entering thread " + Thread.currentThread().getName() + " #" + Thread.currentThread().getId());
 
-                for (long job = 1; job <= 1000000000; job++) {
-                    long count = 0;
-                    for (long k=3; k<=10000L; k++) {
-                        boolean isPrime = true;
-                        for (long j=2; j<=k/2 && isPrime; j++) {
-                            isPrime = k % j > 0;
+                    long timeStart = System.currentTimeMillis();
+                    long timeEnd = 0L;
+                    double timeDiff = 0.0;
+                    double throughput = 0.0;
+                    for (long job = 1; job <= 1000000000; job++) {
+                        long count = 0;
+                        for (long k=3; k<=10000L; k++) {
+                            boolean isPrime = true;
+                            for (long j=2; j<=k/2 && isPrime; j++) {
+                                isPrime = k % j > 0;
+                            }
+                            if (isPrime) {
+                                count++;
+                            }
                         }
-                        if (isPrime) {
-                            count++;
-                        }
+                        if(job % 100 == 0) {
+                            timeEnd = System.currentTimeMillis();
+                            timeDiff = (timeEnd - timeStart) / 1000.0;
+                            throughput = 100.0 / timeDiff;
+                            System.out.printf("  %s throughput: %.2f jobs/sec\n", Thread.currentThread().getName(), throughput);
+                            timeStart = System.currentTimeMillis();
+                        } 
                     }
-                    if(job % 100 == 0) {
-                        System.out.println(Thread.currentThread().getName() + ": " + job);
-                    } 
-                }
-            });
+                });
             }
             executors[i].shutdown();
         }
