@@ -61,18 +61,16 @@ func ParseThreadDump(threadDump string) (*ThreadList, error) {
 	return &nameToNative, nil
 }
 
-func AdjustThreadSpecs(threads ThreadList, specs []ThreadSpecification) ThreadList {
+func AdjustThreadSpecs(threads *ThreadList, specs []ThreadSpecification) {
 	for _, spec := range specs {
-		for i, _ := range threads {
-			if regexp.MustCompile(spec.Filter).MatchString(threads[i].Name) {
-				if !threads[i].HasSpec {
-					threads[i].SetSpec(spec)
+		for i, _ := range *threads {
+			if regexp.MustCompile(spec.Filter).MatchString((*threads)[i].Name) {
+				if !(*threads)[i].HasSpec {
+					(*threads)[i].SetSpec(spec)
 				}
 			}
 		}
 	}
-
-	return threads
 }
 
 func GetJstackThreadDump(java_home string, pid string) (string, error) {

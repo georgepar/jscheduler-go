@@ -69,7 +69,7 @@ func main() {
 		}
 
 		// Filter and adjust thread specs
-		*threads = jscheduler.AdjustThreadSpecs(*threads, threadSpecs.Get())
+		jscheduler.AdjustThreadSpecs(threads, threadSpecs.Get())
 
 		// Set Thread affinities and priorities
 		jscheduler.RescheduleThreadGroup(threads)
