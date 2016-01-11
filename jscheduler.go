@@ -16,23 +16,24 @@ func main() {
 	var pid string
 	var interval int
 	var help bool
-	threadSpecs := jscheduler.NewThreadSpecArgList()
+	policies := jscheduler.NewThreadPolicyArgList()
 
-	threadSpecUsage := `The threads which need to be rescheduled and the scheduling options.
+	policiesUsage := `The threads which need to be rescheduled with the
+    respective scheduling policies.
     Must be given in the format:
-        threadNameRegex1;threadPriority1;cpuPool1::threadNameRegex2;threadPriority2;cpuPool2::...
+        "threadNameRegex1;threadPriority1;cpuPool1::threadNameRegex2;threadPriority2;cpuPool2::..."
     The above configuration will pin the threads that match with threadNameRegex1 to cpuPool1
     with priority threadPriority1 e.t.c.
     Priorities and cpu pools may be left unspecified (but the semicolons must exist),
     in which case the default values given by the OS will be left untouched.
     For example:
-        threadNameRegex1;cpuPool1::threadNameRegex2;threadPriority2;::...
+        "threadNameRegex1;cpuPool1::threadNameRegex2;threadPriority2;::..."
     `
 
 	flag.BoolVar(&help, "help", false, "Display usage information")
 	flag.StringVar(&pid, "pid", "-1", "The pid of the monitored java process. This argument is required.")
 	flag.IntVar(&interval, "interval", 3000, "Time to wait between polling jstack in milliseconds. Default value is 3s.")
-	flag.Var(&threadSpecs, "thread-specs", threadSpecUsage)
+	flag.Var(&policies, "policies", policiesUsage)
 
 	flag.Parse()
 
@@ -69,14 +70,14 @@ func main() {
 			os.Exit(1)
 		}
 
-		// Filter and adjust thread specs
-		jscheduler.AdjustThreadSpecs(threads, threadSpecs.Get())
+		// Filter and adjust thread policies
+		jscheduler.AdjustThreadPolicies(threads, policies.Get())
 
 		// Set Thread affinities and priorities
 		jscheduler.RescheduleThreadGroup(threads)
 
 		for _, t := range *threads {
-			if t.HasSpec {
+			if t.HasPolicy {
 				modifiedThreads[t.Name] = struct{}{}
 			}
             threadCount[t.Name]++

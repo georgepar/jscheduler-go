@@ -56,14 +56,14 @@ func ParseCpuPool(pool string) CpuPool {
 	return cpus
 }
 
-type ThreadSpecification struct {
+type ThreadPolicy struct {
 	Filter string
 	Prio   int
 	Cpus   CpuPool
 }
 
-func NewThreadSpecification() ThreadSpecification {
-	return ThreadSpecification{
+func NewThreadPolicy() ThreadPolicy {
+	return ThreadPolicy{
 		Filter: "",
 		Prio:   0,
 		Cpus:   NewEmptyCpuPool(),
@@ -75,7 +75,7 @@ type Thread struct {
 	Tid     int
 	Prio    int
 	Cpus    CpuPool
-	HasSpec bool
+	HasPolicy bool
 }
 
 func NewThread(name string, tid int) Thread {
@@ -84,20 +84,20 @@ func NewThread(name string, tid int) Thread {
 		Tid:     tid,
 		Prio:    0,
 		Cpus:    NewCpuPool(runtime.NumCPU()),
-		HasSpec: false,
+		HasPolicy: false,
 	}
 }
 
-func (t *Thread) FilterAndSetSpec(spec ThreadSpecification) {
-	if regexp.MustCompile(spec.Filter).MatchString(t.Name) {
-		t.SetSpec(spec)
+func (t *Thread) FilterAndSetPolicy(policy ThreadPolicy) {
+	if regexp.MustCompile(policy.Filter).MatchString(t.Name) {
+		t.SetPolicy(policy)
 	}
 }
 
-func (t *Thread) SetSpec(spec ThreadSpecification) {
-	t.Prio = spec.Prio
-	t.Cpus = spec.Cpus
-	t.HasSpec = true
+func (t *Thread) SetPolicy(policy ThreadPolicy) {
+	t.Prio = policy.Prio
+	t.Cpus = policy.Cpus
+	t.HasPolicy = true
 }
 
 type ThreadList []Thread
@@ -106,17 +106,17 @@ func NewThreadList() ThreadList {
 	return make([]Thread, 0)
 }
 
-type ThreadSpecArgList struct {
-	Value []ThreadSpecification
+type ThreadPolicyArgList struct {
+	Value []ThreadPolicy
 }
 
-func NewThreadSpecArgList() ThreadSpecArgList {
-	return ThreadSpecArgList{
-		Value: make([]ThreadSpecification, 0),
+func NewThreadPolicyArgList() ThreadPolicyArgList {
+	return ThreadPolicyArgList{
+		Value: make([]ThreadPolicy, 0),
 	}
 }
 
-func (lst *ThreadSpecArgList) String() string {
+func (lst *ThreadPolicyArgList) String() string {
 	strLst := make([]string, 0)
 
 	for _, el := range lst.Value {
@@ -132,12 +132,12 @@ func (lst *ThreadSpecArgList) String() string {
 	return strings.Join(strLst[:], "::")
 }
 
-func (lst *ThreadSpecArgList) Set(s string) error {
+func (lst *ThreadPolicyArgList) Set(s string) error {
 	strLst := strings.Split(s, "::")
-	lst.Value = make([]ThreadSpecification, 0)
+	lst.Value = make([]ThreadPolicy, 0)
 	fmt.Println("Thread Schedule Configuration")
 	for _, el := range strLst {
-		ts := NewThreadSpecification()
+		ts := NewThreadPolicy()
 		tsEl := strings.Split(el, ";")
 		if tsEl[0] != "" {
 			fmt.Printf("    Filter: %s\n", tsEl[0])
@@ -158,10 +158,10 @@ func (lst *ThreadSpecArgList) Set(s string) error {
 	return nil
 }
 
-func (lst *ThreadSpecArgList) Get() []ThreadSpecification {
+func (lst *ThreadPolicyArgList) Get() []ThreadPolicy {
 	return lst.Value
 }
 
-func (lst *ThreadSpecArgList) IsSet() bool {
+func (lst *ThreadPolicyArgList) IsSet() bool {
 	return len(lst.Value) > 0
 }
