@@ -63,8 +63,12 @@ func ParseThreadDump(threadDump string, excluded map[string]struct{}) (*ThreadLi
 
 
 func GetJstackThreadDump(java_home string, pid string) (string, error) {
-	cmd := fmt.Sprintf("%s/bin/%s", java_home, "jstack")
-	out, err := exec.Command(cmd, "-l", pid).Output()
+    user := os.Getenv("SUDO_USER")
+    if user == "" {
+        user = os.Getenv("USER")
+    } 
+	cmd := fmt.Sprintf("sudo -u %s %s/bin/%s -l %s", user, java_home, "jstack", pid)
+	out, err := exec.Command("/bin/sh", "-c", cmd).Output()
 	return string(out), err
 }
 
